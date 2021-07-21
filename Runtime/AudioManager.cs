@@ -5,42 +5,46 @@ using System.Collections.Generic;
 /*
 THANK YOU BRACKEYS
 */
-public class AudioManager : MonoBehaviour
+
+namespace AudioManagement
 {
-    public static AudioManager instance;
-    public List<Sound> sounds = new List<Sound>();
-
-    void Awake()
+    public class AudioManager : MonoBehaviour
     {
-        if (AudioManager.instance != null)
+        public static AudioManager instance;
+        public List<Sound> sounds = new List<Sound>();
+
+        void Awake()
         {
-            Destroy(gameObject);
-            Debug.LogError("There can only be one AudioManager");
-            return;
+            if (AudioManager.instance != null)
+            {
+                Destroy(gameObject);
+                Debug.LogError("There can only be one AudioManager");
+                return;
+            }
+
+            DontDestroyOnLoad(gameObject);
+
+            AudioManager.instance = this;
+
+            foreach (Sound sound in sounds)
+            {
+                sound.source = gameObject.AddComponent<AudioSource>();
+                sound.source.clip = sound.clip;
+                sound.source.volume = sound.volume;
+                sound.source.pitch = sound.pitch;
+                sound.source.loop = sound.loop;
+                if (sound.playOnAwake)
+                    sound.source.Play();
+            }
         }
 
-        DontDestroyOnLoad(gameObject);
-
-        AudioManager.instance = this;
-
-        foreach (Sound sound in sounds)
+        public void Play(string _name)
         {
-            sound.source = gameObject.AddComponent<AudioSource>();
-            sound.source.clip = sound.clip;
-            sound.source.volume = sound.volume;
-            sound.source.pitch = sound.pitch;
-            sound.source.loop = sound.loop;
-            if (sound.playOnAwake)
+            Sound sound = sounds.Find(sounds => sounds.name == _name);
+            if (sound != null)
                 sound.source.Play();
+            else
+                Debug.LogError("No sound with name " + _name + " exists.");
         }
-    }
-
-    public void Play(string _name)
-    {
-        Sound sound = sounds.Find(sounds => sounds.name == _name);
-        if (sound != null)
-            sound.source.Play();
-        else
-            Debug.LogError("No sound with name " + _name + " exists.");
     }
 }
